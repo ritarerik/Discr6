@@ -1,3 +1,4 @@
+import java.util.Random;
 
 public class Matrix {
 	
@@ -41,6 +42,20 @@ public class Matrix {
 			System.out.print("   x(" + i + ") =  " + A[i] + " ");				
 			if (i < A.length - 1) System.out.print("\n");	        			
 		}		
+	}
+	
+	public static int[][] createINT(int size) {
+		
+		int A[][] = new int[size][size];
+		
+		Random rnd = new Random(System.currentTimeMillis());
+		
+		for (int i = 0; i < size; i++)
+			for (int j = 0; j < size; j++)
+				A[i][j] = rnd.nextInt(10);
+		
+		return A;
+		
 	}
 	
 }
