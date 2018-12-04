@@ -35,4 +35,12 @@ public class Matrix {
 		System.out.println("\n");		
 	}
 	
+	public static void printINT_VECTOR(int A[]) {
+		
+		for (int i = 0; i < A.length; i++) {
+			System.out.print("   x(" + i + ") =  " + A[i] + " ");				
+			if (i < A.length - 1) System.out.print("\n");	        			
+		}		
+	}
+	
 }

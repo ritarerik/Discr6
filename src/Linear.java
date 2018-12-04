@@ -3,7 +3,9 @@ public class Linear {
 	
 	private static final int INFINITY = 100000;
 	
-	public static void run(int A[][], int startVertex) {
+	public static int[] run(int A[][], int startVertex) {
+		
+		long startTime = System.currentTimeMillis();
 		
 		//----------------------------------------------------------//
 		for (int i = 0; i < A.length; i++)
@@ -23,7 +25,7 @@ public class Linear {
 			V[i] = false;			
 		}
 		
-		D[0] = 0;
+		D[startVertex] = 0;
 		
 		do {
 			minIndex = INFINITY;
@@ -53,8 +55,10 @@ public class Linear {
 			
 		} while (minIndex < INFINITY);
 		
-		for (int i = 0; i < D.length; i++) 
-			System.out.println(D[i]);
+		long timeSpent = System.currentTimeMillis() - startTime;
+		System.out.println("  >> t = " + timeSpent + "мс\n");
+		
+		return D;
 		
 	}
 		
