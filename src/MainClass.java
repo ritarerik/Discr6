@@ -40,8 +40,8 @@ public class MainClass {
 						}
 						
 						int A[][] = Matrix.createINT(count);
-						System.out.println("> Последовательный алгоритм >\n");
-						int D[] = Linear.run(A, 6);
+//						System.out.println("> Последовательный алгоритм >\n");
+//						int D[] = Linear.run(A, 6);
 						
 						System.out.print("> Параллельный алгоритм >");
 						Parallel.run(A, 6);

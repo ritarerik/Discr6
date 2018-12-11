@@ -4,118 +4,137 @@ import java.util.concurrent.CyclicBarrier;
 
 public class Parallel {
 	
-	private static CommonResourceTransitiveClosure commonResource = null;
-	private static CyclicBarrier BARRIER = null;	
+	private static final int INFINITY = 100000;
+	private static CyclicBarrier BARRIER = new CyclicBarrier(4);
 	
-	public static void run(int A[][], int startVertex) {
+	public static int[] run(int A[][], int startVertex) {
 		
-//		boolean AB[][] = Matrix.intersection(A, B);
-//        commonResource = new CommonResourceTransitiveClosure(AB.length);
-//		BARRIER = new CyclicBarrier(4, commonResource);
-//		
-//		Thread t[] = new Thread[4];		
-//        for (int i = 0; i < 4; i++) {				             
-//            t[i] = new Thread(new TransitiveClosureThread(commonResource, i, AB, BARRIER));
-//            t[i].start();
-//        }
-        		
+		long startTime = System.currentTimeMillis();
+		
+		//----------------------------------------------------------//
+		for (int i = 0; i < A.length; i++)
+			for (int j = 0; j < A.length; j++)
+				if (A[i][j] == 0) A[i][j] = INFINITY;		
+		
+		//----------------------------------------------------------//
+		int 	D[] = new int[A.length]; // минимальные расстояния
+		boolean V[] = new boolean[A.length]; // посещённые вершины
+		int 	temp = 0, 
+				minIndex = 0, 
+				min = 0;
+		
+		// инициализация вершин и расстояний
+		for (int i = 0; i < A.length; i++) {
+			D[i] = INFINITY;
+			V[i] = false;			
+		}
+		
+		D[startVertex] = 0;
+		
+		CommonResource CR = new CommonResource(min, minIndex, A, D, V);
+		
+		do {
+			minIndex = INFINITY;
+			min 	 = INFINITY;
+			
+			for (int i = 0; i < A.length; i++) {
+				// если вершину ещё не обошли и вес меньше min
+				if ((!V[i]) && (D[i] < min)) {
+					// переприсваиваем значения
+					min 	 = D[i];
+					minIndex = i;
+				}
+			}
+			
+			// добавляем найденный минимальный вес
+		    // к текущему весу вершины
+		    // и сравниваем с текущим минимальным весом вершины
+			if (minIndex != INFINITY) {
+				for (int i = 0; i < A.length; i++) {
+					if (A[minIndex][i] > 0) {
+						temp = min + A[minIndex][i];
+						if (temp < D[i]) D[i] = temp;
+					}
+				}
+				V[minIndex] = true;
+			}
+			
+		} while (minIndex < INFINITY);
+		
+				
+		long timeSpent = System.currentTimeMillis() - startTime;
+		System.out.println("  >> t = " + timeSpent + "мс\n");
+		
+		return D;
+		
 	}
-	
 }
 
-class CommonResourceTransitiveClosure implements Runnable {
+class CommonResource {
     
-	boolean C[][];	
-	CommonResourceTransitiveClosure(int size) {
-		C = new boolean[size][size];
+	private static int min, minIndex;
+	private static int A[][], D[];
+	private static boolean V[];
+	
+	CommonResource(int min, int minIndex, int A[][], int D[], boolean V[]) {
+		this.min = min;
+		this.minIndex = minIndex;
+		this.A = A;
+		this.D = D;
+		this.V = V;
 	}	
 	
-    synchronized void write(boolean D[], int index) {
-    	C[index] = D;
+    synchronized void writeA() {
+    	
     }
     
-//    boolean[][] getC() {
-//    	return C;
-//    }
-    
-    @Override
-    public void run() {
-//    	boolean Q[][] = Matrix.transpose(C);
-//        boolean newC[][] = Matrix.logicalMultiplication(C, Q);
-//        boolean blockC[][] = Matrix.getBlockMatrix(newC, false);        
+    synchronized void writeD() {
+    	
     }
+
+	synchronized void writeMin(int min) {
+		this.min = min;
+	}
+	
+	synchronized void writeMinIndex(int minIndex) {
+		this.minIndex = minIndex;
+	}
+	
+	int getMin() {return min;}	
+	int getMinIndex() {return minIndex;}
+	int[][] getA() {return A;}
+	int[] getD() {return D;}
+	boolean[] getV() {return V;}
+    
 }
- 
-class TransitiveClosureThread implements Runnable {
- 
-    CommonResourceTransitiveClosure res;
-    int vertex, N;
-    boolean G[][];
-    CyclicBarrier BARRIER;
-    TransitiveClosureThread(CommonResourceTransitiveClosure res, int vertex, boolean G[][], CyclicBarrier BARRIER){
-        this.res = res;
-        this.vertex = vertex;
-        this.G = G;
-        this.BARRIER = BARRIER;
-        this.N = vertex;
-    }
-    
-    @Override
-    public void run() {
-    	
-    	long startTime = System.currentTimeMillis();
-    	
-    	while (vertex < G[0].length) {
-	    	
-    		int B[] = new int[G.length];
-			for (int j = 0; j < B.length; j++) B[j] = -1;
-			B[vertex] = 1;
-			
-			boolean D[] = new boolean[G.length];
-			for (int i = 0; i < D.length; i++) D[i] = false;
-			D[vertex] = true;
-					
-			ArrayDeque<Integer> Q = new ArrayDeque<>(); // очередь вершин
-			Q.addLast(vertex);							// первая вершина задаётся как параметр функции 
-				
-			ArrayDeque<Integer> L = new ArrayDeque<>(); // очередь расстояний
-			L.addLast(B[vertex]);						// первое расстояние = 0
-				
-			while (!Q.isEmpty()) {						// обход в ширину 	 		
-					
-				int i = Q.removeFirst();
-					
-				int length = L.removeFirst() + 1;						
-				for (int j = 0; j < length; j++)						
-					if (G[i][j] && B[j] != 0 && B[j] == -1) {					
-						Q.addLast(j);
-						L.addLast(length);
-						if (length > 0) {
-							B[j] = length;
-							D[j] = true;
-						}
-					} 								
-			}
-	    	
-//			String S = "";			
-//			for (int i = 0; i < D.length; i++) {
-//				if (D[i]) S += "1";
-//				else S += "0";
+
+//class Worker implements Runnable {
+//	
+//	private static CyclicBarrier BARRIER;
+//	private static CommonResource CR;
+//	
+//	Worker(CyclicBarrier BARRIER, CommonResource CR) {
+//		this.BARRIER = BARRIER;
+//		this.CR = CR;
+//	}
+//	
+//	@Override
+//    public void run() {
+//		
+//		int temp = 0;
+//		int A[][] = CR.getA();
+//		int D[] = CR.getD();
+//		int min
+//		
+//		
+//		for (int i = 0; i < A.length; i++) {
+//			if (A[minIndex][i] > 0) {
+//				temp = min + A[minIndex][i];
+//				if (temp < D[i]) D[i] = temp;
 //			}
-//			System.out.println("Thread #" + N + ": " + S);			
-			
-	        res.write(D, vertex);
-	    	vertex += 4;			
-		}
-    	
-        long timeSpent = System.currentTimeMillis() - startTime;
-		System.out.println("  >> t(" + N + ") = " + timeSpent + "мс");
-        
-        try {
-			BARRIER.await();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-        
-    }
-}
+//		}
+//		V[minIndex] = true;
+//		
+//	}
+//
+//}
